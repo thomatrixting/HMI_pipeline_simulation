@@ -21,8 +21,13 @@ Relative velocity is the analytic derivative du/dt (differentiated by hand,
 since every term is a simple sinusoid) evaluated at each phi/t, then its
 Euclidean norm is plotted. u_z is constant in t, so it drops out of du/dt.
 """
+import pathlib
+
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Figures are saved next to this script, so it works on any computer / folder.
+FIGDIR = pathlib.Path(__file__).resolve().parent / "figures"
 
 # --- constants (from the Desmos graph, g dropped / set to 1) ---
 w_sdo = 2 * np.pi / (1436 * 60)                    # SDO orbital angular rate [rad/s]
@@ -72,7 +77,7 @@ def plot_relative_velocity():
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
 
-    out_path = "/home/thomas/Projects/sun_rotacion_sim/relative_velocity_plot.png"
+    out_path = FIGDIR / "relative_velocity_plot.png"
     fig.savefig(out_path, dpi=150)
     print(f"Saved plot to {out_path}")
 
@@ -100,7 +105,7 @@ def plot_depth_comparison(phi=45):
     ax.grid(True, alpha=0.3)
     fig.tight_layout()
 
-    out_path = f"/home/thomas/Projects/sun_rotacion_sim/relative_velocity_depth_comparison_phi{phi}.png"
+    out_path = FIGDIR / f"relative_velocity_depth_comparison_phi{phi}.png"
     fig.savefig(out_path, dpi=150)
     print(f"Saved depth comparison plot to {out_path}")
 
