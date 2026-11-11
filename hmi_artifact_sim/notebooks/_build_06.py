@@ -760,6 +760,72 @@ plt.show()
 """)
 
 md(r"""
+### R6c — Dopplergrama y magnetograma simulados (valores estándar)
+
+Lo que mediría HMI en un píxel umbral a lo largo de 48 h, con los valores de
+referencia de `config.py` y la cadena real completa (filtros del día, línea del
+pipeline, LUT del JSOC):
+
+| parámetro | valor |
+|---|---|
+| profundidad de Wilson $z_W$ | `Z_W_REF` = 600 km |
+| campo longitudinal $B$ | `B_GAUSS` = 2500 G |
+| `OBS_VR(t)` | `A_ORB`·sin(2πt / `P_ORB_HOURS`) = 3000 m/s, 24 h |
+| Zeeman | corrimiento rígido ($\gamma = 0$) |
+| estimador | `pipeline` (filtros reales + LUT real) |
+| época / píxel | FSN 23845068, píxel central ($\mu \approx 1$) |
+
+Arriba el dopplerograma (artefacto relativo al Sol quieto, $V - V_{\rm quieto}$);
+abajo el magnetograma ($B_{\rm LOS} = (v_{\rm LCP} - v_{\rm RCP})\,K_m$) contra
+el campo real.
+""")
+code(r"""
+o_std = C_est['pipeline']        # z_W = Z_W_REF, B = B_GAUSS, OBS_VR = A_ORB sin(2 pi t / 24 h)
+dop = o_std['artifact_rel']
+mag = o_std['B_los']
+
+fig, axes = plt.subplots(2, 1, figsize=FIGSIZE_STACK, sharex=True)
+
+ax = axes[0]
+for v in (-cfg.V_OBSERVED_RESIDUAL, cfg.V_OBSERVED_RESIDUAL):
+    ax.axhline(v, color='#b9b5a7', lw=1.4, ls=(0, (6, 4)), zorder=0)
+ax.annotate(f'observado $\\pm${cfg.V_OBSERVED_RESIDUAL:.0f} m/s',
+            xy=(48.3, cfg.V_OBSERVED_RESIDUAL), fontsize=FS_ANNOT + 2,
+            color='#7a7568', va='center', annotation_clip=False)
+ax.axhline(0, color=C_GRID, lw=1.2)
+ax.plot(t, dop, color=C_ACCENT, lw=LW_SERIES)
+lim = 1.2 * max(cfg.V_OBSERVED_RESIDUAL, np.abs(dop).max())
+ax.set_ylim(-lim, lim)
+ax.set_ylabel('velocidad Doppler   [m/s]')
+ax.set_title(f'Dopplergrama simulado  (semiamplitud {amp(dop):.0f} m/s)', loc='left')
+mono_ticks(ax)
+
+ax = axes[1]
+ax.axhline(cfg.B_GAUSS, color=C_INK, lw=1.4, ls=':')
+ax.annotate(f'B real\n{cfg.B_GAUSS:.0f} G', xy=(48.3, cfg.B_GAUSS), fontsize=FS_ANNOT + 2,
+            color=C_INK, va='center', annotation_clip=False)
+ax.plot(t, mag, color=C_SERIES_3, lw=LW_SERIES)
+ax.set_xlabel('tiempo   [h]')
+ax.set_ylabel('$B_{\\rm LOS}$   [G]')
+ax.set_title(f'Magnetograma simulado  (media {mag.mean():.0f} G, '
+             f'pico-pico {np.ptp(mag):.0f} G)', loc='left')
+ax.set_xlim(0, 48)
+ax.set_xticks(np.arange(0, 49, 6))
+mono_ticks(ax)
+
+fig.suptitle(f'R6c — umbra con valores estándar: $z_W$ = {cfg.Z_W_REF:.0f} km, '
+             f'B = {cfg.B_GAUSS:.0f} G, OBS_VR = {cfg.A_ORB:.0f} m/s · 24 h',
+             fontsize=FS_TITLE, y=1.0)
+fig.tight_layout()
+save_fig(fig, 'R6c_dopplergrama_magnetograma')
+plt.show()
+
+print(f'Dopplergrama : semiamplitud {amp(dop):6.1f} m/s   media {dop.mean():+7.1f} m/s')
+print(f'Magnetograma : semiamplitud {amp(mag):6.1f} G     media {mag.mean():7.1f} G'
+      f'   (B real {cfg.B_GAUSS:.0f} G)')
+""")
+
+md(r"""
 ### R7 — Espectro: el dopplerograma en los armónicos impares, $B_{\rm LOS}$ en los pares
 
 El artefacto y la contaminación del magnetograma son dos respuestas periódicas a
